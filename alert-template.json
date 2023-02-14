@@ -1,0 +1,70 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[deployment().location]",
+      "metadata": {
+        "description": "Optional. Location of the deployment."
+      }
+    },
+    "logic_app_id": {
+      "type": "string",
+      "metadata": {
+        "description": "Required. Id of logic app "
+      }      
+      },
+    "description": {
+      "type": "string",
+      "metadata": {
+        "description": "Required. Description of alert "
+      }      
+      }               
+  },
+  "variables": {
+  },
+  "resources": [        
+      {
+          "type": "Microsoft.Insights/metricAlerts",
+          "apiVersion": "2018-03-01",
+          "name": "omv-sh-main-sna-pd-01-euw-alert-logic_vmdeploy_run_failed-01",
+          "location": "global",
+          "properties": {
+              "description": "[parameters('description')]",
+              "severity": 1,
+              "enabled": true,
+              "scopes": [
+                  "[parameters('logic_app_id')]"
+              ],
+              "evaluationFrequency": "PT1M",
+              "windowSize":  "PT5M",
+              "criteria": {
+                  "allOf": [
+                      {
+                          "threshold": 1,
+                          "name": "FailedCount",
+                          "metricNamespace": "Microsoft.Logic/workflows",
+                          "metricName": "RunsFailed",
+                          "operator": "greaterthan",
+                          "timeAggregation": "count",
+                          "criterionType": "StaticThresholdCriterion"
+                      }
+                  ],
+                  "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+              },
+              "autoMitigate": true,
+              "targetResourceType": "Microsoft.Logic/workflows",
+              "targetResourceRegion": "[parameters('location')]",
+              "actions": [
+                  {
+                      "actionGroupId": 
+                        "/subscriptions/7B3AACEB-4F7F-4FC1-9F1F-02C95BFC09A9/resourceGroups/omv-sh-main-pd-01-euw-rg-mgmt-sna-pd-01/providers/microsoft.insights/actionGroups/email-ccoe",
+                      "webHookProperties": {}
+                  }
+              ]
+          }
+      }   
+  ],     
+  "outputs": {}
+}
